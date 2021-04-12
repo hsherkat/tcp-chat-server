@@ -6,10 +6,6 @@ from chatuser import ChatUser, send_all
 from commands import execute
 
 
-##########
-# chat
-
-
 async def initial_setup(reader, writer) -> ChatUser:
     user = ChatUser(reader, writer)
     if not clients:  # first user to join gets mod privileges

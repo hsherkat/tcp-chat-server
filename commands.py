@@ -3,9 +3,6 @@ from config import *
 from chatuser import ChatUser, send_all
 
 
-commands = {}
-
-
 def command(fn):
     """Decorator to register commands for chat.
     Command function name must be of the form cmd_blah.
