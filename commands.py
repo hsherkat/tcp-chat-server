@@ -10,12 +10,12 @@ def command(fn):
     The function's docstring will be used as the help message for the command.
     """
     name = "/" + fn.__name__[4:]
-    commands[name] = fn
+    chat_system.commands[name] = fn
     return
 
 
 @command
-async def cmd_nick(user: ChatUser, args: List[str]):
+async def cmd_nick(user: ChatUser, args: List[str], chat_system: ChatSystem):
     """Changes your username.
     Example: "/nick Cool Guy"
     """
@@ -28,20 +28,20 @@ async def cmd_nick(user: ChatUser, args: List[str]):
     except KeyError:
         await user.send(" >> " + f"Sorry, someone is already named {nick!r}.")
     else:
-        del client_from_name[old_name]
+        del chat_system.client_from_name[old_name]
         message = f"{old_name} has changed name to {nick}."
         logging.debug(message)
-        await send_all(message)
+        await send_all(message, chat_system)
     return
 
 
 @command
-async def cmd_exit(user: ChatUser, args: List[str]):
+async def cmd_exit(user: ChatUser, args: List[str], chat_system: ChatSystem):
     """Exits the chat.
     """
     message = f"{user.nick} has left the chat."
     logging.debug(message)
-    await send_all(message)
+    await send_all(message, chat_system)
     return "exit"
 
 
@@ -50,7 +50,7 @@ def die(sides: int, n_rolls: int = 1):
 
 
 @command
-async def cmd_roll(user: ChatUser, args: List[str]):
+async def cmd_roll(user: ChatUser, args: List[str], chat_system: ChatSystem):
     """Rolls some dice!
     Example: "/roll 1d20 2d4" 
     """
@@ -65,46 +65,46 @@ async def cmd_roll(user: ChatUser, args: List[str]):
         dice_str = " ".join(args)
         results = " ".join(rolls)
         message = f"{user.nick} just rolled {dice_str} and got: {results}"
-        await send_all(message)
+        await send_all(message, chat_system)
         logging.debug(message)
     return
 
 
 @command
-async def cmd_block(user: ChatUser, args: List[str]):
+async def cmd_block(user: ChatUser, args: List[str], chat_system: ChatSystem):
     """Blocks messages from a user.
     Example: "/block Mean Guy"
     """
-    blockee = client_from_name[" ".join(args)]
+    blockee = chat_system.client_from_name[" ".join(args)]
     user.blocks.append(blockee)
     message = f"{user.nick} has blocked {blockee.nick}."
-    await send_all(message)
+    await send_all(message, chat_system)
     return
 
 
 @command
-async def cmd_unblock(user: ChatUser, args: List[str]):
+async def cmd_unblock(user: ChatUser, args: List[str], chat_system: ChatSystem):
     """Unblocks a user you've blocked.
     Example: "/unblock Not So Mean Guy"
     """
-    blockee = client_from_name[" ".join(args)]
+    blockee = chat_system.client_from_name[" ".join(args)]
     user.blocks.remove(blockee)
     message = f"{user.nick} has unblocked {blockee.nick}."
-    await send_all(message)
+    await send_all(message, chat_system)
     return
 
 
 @command
-async def cmd_help(user: ChatUser, args: List[str]):
+async def cmd_help(user: ChatUser, args: List[str], chat_system: ChatSystem):
     """Haha, so meta!
     """
     if not args:
-        message = f"The commands are:\n\r{sorted(list(commands))!r}"
+        message = f"The commands are:\n\r{sorted(list(chat_system.commands))!r}"
         await user.send(" >> " + message)
         message = f'Type "/help {{command name}}" for help on a command.'
         await user.send(" >> " + message)
     else:
-        cmd = commands["/" + " ".join(args)]
+        cmd = chat_system.commands["/" + " ".join(args)]
         lines = cmd.__doc__.strip().split("\n")
         message = "\n\r".join([" >> " + line.strip() for line in lines])
         await user.send(message)
@@ -112,7 +112,7 @@ async def cmd_help(user: ChatUser, args: List[str]):
 
 
 @command
-async def cmd_dm(user: ChatUser, args: List[str]):
+async def cmd_dm(user: ChatUser, args: List[str], chat_system: ChatSystem):
     """Directly messages another user.
     If the user's name has spaces, seperate name from message with "//".
     Examples:
@@ -122,21 +122,21 @@ async def cmd_dm(user: ChatUser, args: List[str]):
     s = " ".join(args)
     if "//" in s:
         target_nick, msg = s.split("//")
-        target = client_from_name[target_nick.strip()]
+        target = chat_system.client_from_name[target_nick.strip()]
         message = f"{user.nick} whispers: {msg.strip()}"
     else:
         target_nick, *msg_list = s.split()
-        target = client_from_name[target_nick]
+        target = chat_system.client_from_name[target_nick]
         message = f"{user.nick} whispers: {' '.join(msg_list).strip()}"
     await target.send(message)
     return
 
 
 @command
-async def cmd_harass(user: ChatUser, args: List[str]):
+async def cmd_harass(user: ChatUser, args: List[str], chat_system: ChatSystem):
     """Shame on you! What is wrong with you? Honestly, you need help.
     """
-    target = client_from_name[" ".join(args)]
+    target = chat_system.client_from_name[" ".join(args)]
     msg = choice(harassment_msgs)
     await target.send(" >> " + f"{user.nick} whispers: {msg}")
     await user.send(" >> " + f"You whisper to {target.nick}: {msg}")
@@ -144,7 +144,7 @@ async def cmd_harass(user: ChatUser, args: List[str]):
 
 
 @command
-async def cmd_kick(user: ChatUser, args: List[str]):
+async def cmd_kick(user: ChatUser, args: List[str], chat_system: ChatSystem):
     """Boots user from chat.
     Only moderators can use.
     Example: "/kick Bad Guy"
@@ -152,15 +152,15 @@ async def cmd_kick(user: ChatUser, args: List[str]):
     if not user.is_moderator:
         await user.send(" >> " + "You are not a moderator.")
         return
-    target = client_from_name[" ".join(args)]
+    target = chat_system.client_from_name[" ".join(args)]
     message = f"{user.nick} has kicked {target.nick} from chat."
-    await send_all(message)
+    await send_all(message, chat_system)
     target.is_kicked.set()
     return
 
 
 @command
-async def cmd_mod(user: ChatUser, args: List[str]):
+async def cmd_mod(user: ChatUser, args: List[str], chat_system: ChatSystem):
     """Grants mod privileges to another user.
     Only moderators can use.
     Example: "/mod Good Guy Greg"
@@ -168,26 +168,26 @@ async def cmd_mod(user: ChatUser, args: List[str]):
     if not user.is_moderator:
         await user.send(" >> " + "You are not a moderator.")
         return
-    target = client_from_name[" ".join(args)]
+    target = chat_system.client_from_name[" ".join(args)]
     message = f"{user.nick} has granted moderator privileges to {target.nick}."
-    await send_all(message)
+    await send_all(message, chat_system)
     target.is_moderator = True
     return
 
 
 @command
-async def cmd_userlist(user: ChatUser, args: List[str]):
+async def cmd_userlist(user: ChatUser, args: List[str], chat_system: ChatSystem):
     """Lists all users currently in chat.
     """
-    message = f"{sorted(list(client_from_name))}"
+    message = f"{sorted(list(chat_system.client_from_name))}"
     await user.send(" >> " + message)
     return
 
 
-async def execute(user: ChatUser, cmd: str, args: List[str]):
-    if fn := commands.get(cmd):
+async def execute(user: ChatUser, cmd: str, args: List[str], chat_system: ChatSystem):
+    if fn := chat_system.commands.get(cmd):
         try:
-            return await fn(user, args)
+            return await fn(user, args, chat_system)
         except:
             message = "Sorry, something went wrong."
             await user.send(" >> " + message)

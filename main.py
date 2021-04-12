@@ -6,22 +6,23 @@ from chatuser import ChatUser, send_all
 from commands import execute
 
 
-async def initial_setup(reader, writer) -> ChatUser:
-    user = ChatUser(reader, writer)
-    if not clients:  # first user to join gets mod privileges
+async def initial_setup(reader, writer, chat_system: ChatSystem) -> ChatUser:
+    user = ChatUser(reader, writer, chat_system)
+    if not chat_system.clients:  # first user to join gets mod privileges
         user.is_moderator = True
-    clients.append(user)
-    client_from_name[user.nick] = user
+    chat_system.clients.append(user)
+    chat_system.client_from_name[user.nick] = user
     message = f"{user.nick} has connected."
     logging.debug(message)
-    await send_all(message)
+    await send_all(message, chat_system)
     return user
 
 
 async def handle(reader, writer):
+    global chat_system
 
     # on connection
-    user = await initial_setup(reader, writer)
+    user = await initial_setup(reader, writer, chat_system)
     kicked = asyncio.create_task(user.is_kicked.wait())
 
     # chat loop
@@ -32,12 +33,17 @@ async def handle(reader, writer):
             break
         data = read_data.result()
         message = data.decode("utf8", "ignore").strip()
-        msg = f"{user.addr} ({user.nick!r}) sent: {message!r}"
-        logging.debug(msg)
+        prefix = (
+            f"{user.addr} sent: "
+            if user.addr == user.nick
+            else f"{user.nick!r} {user.addr} sent: "
+        )
+        log_msg = prefix + f"{message!r}"
+        logging.debug(log_msg)
 
         if message.startswith("/"):
             cmd, *args = message.split()
-            if await execute(user, cmd, args) == "exit":
+            if await execute(user, cmd, args, chat_system) == "exit":
                 break
         else:
             await user.send_from(message)
@@ -45,14 +51,14 @@ async def handle(reader, writer):
     # on exit
     user.writer.close()
     await user.writer.wait_closed()
-    del client_from_name[user.nick]
-    clients.remove(user)
+    del chat_system.client_from_name[user.nick]
+    chat_system.clients.remove(user)
 
     return
 
 
 async def main():
-    server = await asyncio.start_server(handle, HOST, PORT)
+    server = await asyncio.start_server(handle, chat_system.HOST, chat_system.PORT)
     addr = server.sockets[0].getsockname()
     logging.debug(f"Serving on {addr}.")
     async with server:
