@@ -1,14 +1,11 @@
-import asyncio
+from asyncio import StreamReader, StreamWriter, Event
 from typing import List
 from config import *
 
 
 class ChatUser:
     def __init__(
-        self,
-        reader: asyncio.StreamReader,
-        writer: asyncio.StreamWriter,
-        chat_system: ChatSystem,
+        self, reader: StreamReader, writer: StreamWriter, chat_system: ChatSystem
     ):
         self.reader = reader
         self.writer = writer
@@ -17,7 +14,7 @@ class ChatUser:
         self.blocks: List[ChatUser] = []
         self._nick = None
         self.is_moderator = False
-        self.is_kicked = asyncio.Event()
+        self.is_kicked = Event()
         return
 
     @property

@@ -6,6 +6,9 @@ from chatuser import ChatUser, send_all
 from commands import execute
 
 
+chat_system = ChatSystem()
+
+
 async def initial_setup(reader, writer, chat_system: ChatSystem) -> ChatUser:
     user = ChatUser(reader, writer, chat_system)
     if not chat_system.clients:  # first user to join gets mod privileges
@@ -33,12 +36,14 @@ async def handle(reader, writer):
             break
         data = read_data.result()
         message = data.decode("utf8", "ignore").strip()
-        prefix = (
+        if message == "":  # disconnected clients sometimes send blanks nonstop
+            continue
+        log_prefix = (
             f"{user.addr} sent: "
             if user.addr == user.nick
             else f"{user.nick!r} {user.addr} sent: "
         )
-        log_msg = prefix + f"{message!r}"
+        log_msg = log_prefix + f"{message!r}"
         logging.debug(log_msg)
 
         if message.startswith("/"):

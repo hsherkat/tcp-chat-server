@@ -3,6 +3,14 @@ from config import *
 from chatuser import ChatUser, send_all
 
 
+commands = {}
+harassment_msgs = [
+    "I don’t want to talk to you no more, you empty-headed animal-food-trough wiper.",
+    "I fart in your general direction.",
+    "Your mother was a hamster, and your father smelt of elderberries.",
+]
+
+
 def command(fn):
     """Decorator to register commands for chat.
     Command function name must be of the form cmd_blah.
@@ -10,7 +18,7 @@ def command(fn):
     The function's docstring will be used as the help message for the command.
     """
     name = "/" + fn.__name__[4:]
-    chat_system.commands[name] = fn
+    commands[name] = fn
     return
 
 
@@ -99,12 +107,12 @@ async def cmd_help(user: ChatUser, args: List[str], chat_system: ChatSystem):
     """Haha, so meta!
     """
     if not args:
-        message = f"The commands are:\n\r{sorted(list(chat_system.commands))!r}"
+        message = f"The commands are:\n\r{sorted(list(commands))!r}"
         await user.send(" >> " + message)
         message = f'Type "/help {{command name}}" for help on a command.'
         await user.send(" >> " + message)
     else:
-        cmd = chat_system.commands["/" + " ".join(args)]
+        cmd = commands["/" + " ".join(args)]
         lines = cmd.__doc__.strip().split("\n")
         message = "\n\r".join([" >> " + line.strip() for line in lines])
         await user.send(message)
@@ -185,7 +193,11 @@ async def cmd_userlist(user: ChatUser, args: List[str], chat_system: ChatSystem)
 
 
 async def execute(user: ChatUser, cmd: str, args: List[str], chat_system: ChatSystem):
-    if fn := chat_system.commands.get(cmd):
+    """Called when a user sends a message of form "/cmd blah blah".
+    The message is split on spaces and unpacked as cmd, *args.
+    Looks up '/cmd' in the commands dict and tries to return the result of calling it.
+    """
+    if fn := commands.get(cmd):
         try:
             return await fn(user, args, chat_system)
         except:
