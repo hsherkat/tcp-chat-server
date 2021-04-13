@@ -2,6 +2,9 @@ from random import randint, choice
 from config import *
 from chatuser import ChatUser, send_all
 
+if TYPE_CHECKING:
+    from chatsystem import ChatSystem
+
 
 commands = {}
 harassment_msgs = [
@@ -23,7 +26,7 @@ def command(fn):
 
 
 @command
-async def cmd_nick(user: ChatUser, args: List[str], chat_system: ChatSystem):
+async def cmd_nick(user: ChatUser, args: List[str], chat_system: "ChatSystem"):
     """Changes your username.
     Example: "/nick Cool Guy"
     """
@@ -44,7 +47,7 @@ async def cmd_nick(user: ChatUser, args: List[str], chat_system: ChatSystem):
 
 
 @command
-async def cmd_exit(user: ChatUser, args: List[str], chat_system: ChatSystem):
+async def cmd_exit(user: ChatUser, args: List[str], chat_system: "ChatSystem"):
     """Exits the chat.
     """
     message = f"{user.nick} has left the chat."
@@ -58,7 +61,7 @@ def die(sides: int, n_rolls: int = 1):
 
 
 @command
-async def cmd_roll(user: ChatUser, args: List[str], chat_system: ChatSystem):
+async def cmd_roll(user: ChatUser, args: List[str], chat_system: "ChatSystem"):
     """Rolls some dice!
     Example: "/roll 1d20 2d4" 
     """
@@ -79,7 +82,7 @@ async def cmd_roll(user: ChatUser, args: List[str], chat_system: ChatSystem):
 
 
 @command
-async def cmd_block(user: ChatUser, args: List[str], chat_system: ChatSystem):
+async def cmd_block(user: ChatUser, args: List[str], chat_system: "ChatSystem"):
     """Blocks messages from a user.
     Example: "/block Mean Guy"
     """
@@ -91,7 +94,7 @@ async def cmd_block(user: ChatUser, args: List[str], chat_system: ChatSystem):
 
 
 @command
-async def cmd_unblock(user: ChatUser, args: List[str], chat_system: ChatSystem):
+async def cmd_unblock(user: ChatUser, args: List[str], chat_system: "ChatSystem"):
     """Unblocks a user you've blocked.
     Example: "/unblock Not So Mean Guy"
     """
@@ -103,7 +106,7 @@ async def cmd_unblock(user: ChatUser, args: List[str], chat_system: ChatSystem):
 
 
 @command
-async def cmd_help(user: ChatUser, args: List[str], chat_system: ChatSystem):
+async def cmd_help(user: ChatUser, args: List[str], chat_system: "ChatSystem"):
     """Haha, so meta!
     """
     if not args:
@@ -120,7 +123,7 @@ async def cmd_help(user: ChatUser, args: List[str], chat_system: ChatSystem):
 
 
 @command
-async def cmd_dm(user: ChatUser, args: List[str], chat_system: ChatSystem):
+async def cmd_dm(user: ChatUser, args: List[str], chat_system: "ChatSystem"):
     """Directly messages another user.
     If the user's name has spaces, seperate name from message with "//".
     Examples:
@@ -141,7 +144,7 @@ async def cmd_dm(user: ChatUser, args: List[str], chat_system: ChatSystem):
 
 
 @command
-async def cmd_harass(user: ChatUser, args: List[str], chat_system: ChatSystem):
+async def cmd_harass(user: ChatUser, args: List[str], chat_system: "ChatSystem"):
     """Shame on you! What is wrong with you? Honestly, you need help.
     """
     target = chat_system.client_from_name[" ".join(args)]
@@ -152,7 +155,7 @@ async def cmd_harass(user: ChatUser, args: List[str], chat_system: ChatSystem):
 
 
 @command
-async def cmd_kick(user: ChatUser, args: List[str], chat_system: ChatSystem):
+async def cmd_kick(user: ChatUser, args: List[str], chat_system: "ChatSystem"):
     """Boots user from chat.
     Only moderators can use.
     Example: "/kick Bad Guy"
@@ -168,7 +171,7 @@ async def cmd_kick(user: ChatUser, args: List[str], chat_system: ChatSystem):
 
 
 @command
-async def cmd_mod(user: ChatUser, args: List[str], chat_system: ChatSystem):
+async def cmd_mod(user: ChatUser, args: List[str], chat_system: "ChatSystem"):
     """Grants mod privileges to another user.
     Only moderators can use.
     Example: "/mod Good Guy Greg"
@@ -184,7 +187,7 @@ async def cmd_mod(user: ChatUser, args: List[str], chat_system: ChatSystem):
 
 
 @command
-async def cmd_userlist(user: ChatUser, args: List[str], chat_system: ChatSystem):
+async def cmd_userlist(user: ChatUser, args: List[str], chat_system: "ChatSystem"):
     """Lists all users currently in chat.
     """
     message = f"{sorted(list(chat_system.client_from_name))}"
@@ -192,7 +195,7 @@ async def cmd_userlist(user: ChatUser, args: List[str], chat_system: ChatSystem)
     return
 
 
-async def execute(user: ChatUser, cmd: str, args: List[str], chat_system: ChatSystem):
+async def execute(user: ChatUser, cmd: str, args: List[str], chat_system: "ChatSystem"):
     """Called when a user sends a message of form "/cmd blah blah".
     The message is split on spaces and unpacked as cmd, *args.
     Looks up '/cmd' in the commands dict and tries to return the result of calling it.

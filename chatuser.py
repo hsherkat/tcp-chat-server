@@ -1,11 +1,13 @@
 from asyncio import StreamReader, StreamWriter, Event
-from typing import List
 from config import *
+
+if TYPE_CHECKING:
+    from chatsystem import ChatSystem
 
 
 class ChatUser:
     def __init__(
-        self, reader: StreamReader, writer: StreamWriter, chat_system: ChatSystem
+        self, reader: StreamReader, writer: StreamWriter, chat_system: "ChatSystem"
     ):
         self.reader = reader
         self.writer = writer
@@ -49,7 +51,7 @@ class ChatUser:
         return await self.reader.read(300)
 
 
-async def send_all(message: str, chat_system: ChatSystem):
+async def send_all(message: str, chat_system: "ChatSystem"):
     for user in chat_system.clients:
         await user.send(" >> " + message)
     return
