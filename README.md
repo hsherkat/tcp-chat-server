@@ -1,3 +1,3 @@
-This was just an excuse to learn a little about async programming and websockets in Python.
+This was just an excuse to learn a little about async programming and socket programming in Python.
 
 Running the main script starts the chat server on localhost. You can use ngrok (ngrok tcp 9999) to expose your localhost. You and your friends can use a telnet client (one that allows local line editing, so it sends entire lines, not character by character) like Putty to connect to the server that ngrok returns.

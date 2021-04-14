@@ -1,5 +1,6 @@
+import logging
 from random import randint, choice
-from config import *
+from typing import List, TYPE_CHECKING
 from chatuser import ChatUser, send_all
 
 if TYPE_CHECKING:

@@ -1,9 +1,10 @@
 import asyncio
+import logging
+from typing import List, Dict
 from asyncio.tasks import FIRST_COMPLETED
 
-from config import *
 from chatuser import ChatUser, send_all
-from commands import commands, execute
+from commands import execute
 
 
 class ChatSystem:
@@ -14,7 +15,7 @@ class ChatSystem:
         self.client_from_name: Dict[str, "ChatUser"] = {}
         return
 
-    async def initial_setup(self, reader, writer) -> ChatUser:
+    async def create_user(self, reader, writer) -> ChatUser:
         user = ChatUser(reader, writer, self)
         if not self.clients:  # first user to join gets mod privileges
             user.is_moderator = True
@@ -29,7 +30,7 @@ class ChatSystem:
         async def handle(reader, writer):
 
             # on connection
-            user = await self.initial_setup(reader, writer)
+            user = await self.create_user(reader, writer)
             kicked = asyncio.create_task(user.is_kicked.wait())
 
             # chat loop
@@ -42,7 +43,9 @@ class ChatSystem:
                     break
                 data = read_data.result()
                 message = data.decode("utf8", "ignore").strip()
-                if message == "":  # disconnected clients sometimes send blanks nonstop
+                if (
+                    message == "" or message == "\x18'\x01\x03\x03"
+                ):  # blanks and weird bytestrings
                     continue
                 log_prefix = (
                     f"{user.addr} sent: "

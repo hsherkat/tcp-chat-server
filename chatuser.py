@@ -1,5 +1,6 @@
+import logging
+from typing import List, TYPE_CHECKING
 from asyncio import StreamReader, StreamWriter, Event
-from config import *
 
 if TYPE_CHECKING:
     from chatsystem import ChatSystem
