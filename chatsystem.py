@@ -27,6 +27,10 @@ class ChatSystem:
         return user
 
     def create_handler(self):
+        """Makes callback for client connection for start_server (primary function that runs the chat server).
+        The callback can only have reader, writer as args, so need to have chat system in enclosure.
+        """
+
         async def handle(reader, writer):
 
             # on connection

@@ -17,7 +17,7 @@ harassment_msgs = [
 
 def command(fn):
     """Decorator to register commands for chat.
-    Command function name must be of the form cmd_blah.
+    Command function name should be of the form cmd_blah.
     Commands are invoked by typing /{name of command} in chat.
     The function's docstring will be used as the help message for the command.
     """
