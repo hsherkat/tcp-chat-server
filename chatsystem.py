@@ -20,7 +20,7 @@ class ChatSystem:
         if not self.clients:  # first user to join gets mod privileges
             user.is_moderator = True
         self.clients.append(user)
-        self.client_from_name[user.nick] = user
+        self.client_from_name[user.nick.lower()] = user
         message = f"{user.nick} has connected."
         logging.debug(message)
         await send_all(message, self)
@@ -69,7 +69,7 @@ class ChatSystem:
             # on exit
             user.writer.close()
             await user.writer.wait_closed()
-            del self.client_from_name[user.nick]
+            del self.client_from_name[user.nick.lower()]
             self.clients.remove(user)
 
             return

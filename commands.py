@@ -40,7 +40,7 @@ async def cmd_nick(user: ChatUser, args: List[str], chat_system: "ChatSystem"):
     except KeyError:
         await user.send(" >> " + f"Sorry, someone is already named {nick!r}.")
     else:
-        del chat_system.client_from_name[old_name]
+        del chat_system.client_from_name[old_name.lower()]
         message = f"{old_name} has changed name to {nick}."
         logging.debug(message)
         await send_all(message, chat_system)
@@ -87,7 +87,7 @@ async def cmd_block(user: ChatUser, args: List[str], chat_system: "ChatSystem"):
     """Blocks messages from a user.
     Example: "/block Mean Guy"
     """
-    blockee = chat_system.client_from_name[" ".join(args)]
+    blockee = chat_system.client_from_name[" ".join(args).lower()]
     user.blocks.append(blockee)
     message = f"{user.nick} has blocked {blockee.nick}."
     await send_all(message, chat_system)
@@ -99,7 +99,7 @@ async def cmd_unblock(user: ChatUser, args: List[str], chat_system: "ChatSystem"
     """Unblocks a user you've blocked.
     Example: "/unblock Not So Mean Guy"
     """
-    blockee = chat_system.client_from_name[" ".join(args)]
+    blockee = chat_system.client_from_name[" ".join(args).lower()]
     user.blocks.remove(blockee)
     message = f"{user.nick} has unblocked {blockee.nick}."
     await send_all(message, chat_system)
@@ -134,11 +134,11 @@ async def cmd_dm(user: ChatUser, args: List[str], chat_system: "ChatSystem"):
     s = " ".join(args)
     if "//" in s:
         target_nick, msg = s.split("//")
-        target = chat_system.client_from_name[target_nick.strip()]
+        target = chat_system.client_from_name[target_nick.lower().strip()]
         message = f"{user.nick} whispers: {msg.strip()}"
     else:
         target_nick, *msg_list = s.split()
-        target = chat_system.client_from_name[target_nick]
+        target = chat_system.client_from_name[target_nick.lower()]
         message = f"{user.nick} whispers: {' '.join(msg_list).strip()}"
     await target.send(message)
     return
@@ -148,7 +148,7 @@ async def cmd_dm(user: ChatUser, args: List[str], chat_system: "ChatSystem"):
 async def cmd_harass(user: ChatUser, args: List[str], chat_system: "ChatSystem"):
     """Shame on you! What is wrong with you? Honestly, you need help.
     """
-    target = chat_system.client_from_name[" ".join(args)]
+    target = chat_system.client_from_name[" ".join(args).lower()]
     msg = choice(harassment_msgs)
     await target.send(" >> " + f"{user.nick} whispers: {msg}")
     await user.send(" >> " + f"You whisper to {target.nick}: {msg}")
@@ -164,7 +164,7 @@ async def cmd_kick(user: ChatUser, args: List[str], chat_system: "ChatSystem"):
     if not user.is_moderator:
         await user.send(" >> " + "You are not a moderator.")
         return
-    target = chat_system.client_from_name[" ".join(args)]
+    target = chat_system.client_from_name[" ".join(args).lower()]
     message = f"{user.nick} has kicked {target.nick} from chat."
     await send_all(message, chat_system)
     target.is_kicked.set()
@@ -180,7 +180,7 @@ async def cmd_mod(user: ChatUser, args: List[str], chat_system: "ChatSystem"):
     if not user.is_moderator:
         await user.send(" >> " + "You are not a moderator.")
         return
-    target = chat_system.client_from_name[" ".join(args)]
+    target = chat_system.client_from_name[" ".join(args).lower()]
     message = f"{user.nick} has granted moderator privileges to {target.nick}."
     await send_all(message, chat_system)
     target.is_moderator = True

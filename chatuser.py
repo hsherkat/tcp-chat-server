@@ -12,7 +12,7 @@ class ChatUser:
         self.writer = writer
         self.chat_system = chat_system
 
-        self.addr = writer.get_extra_info("peername")
+        self.addr = str(writer.get_extra_info("peername"))
         self.blocks: List[ChatUser] = []
         self._nick = None
         self.is_moderator = False
@@ -27,10 +27,10 @@ class ChatUser:
     def nick(self, name):
         if not all(word.isalnum() for word in name.split()):  # alphanumeric validation
             raise ValueError
-        if name in self.chat_system.client_from_name:  # uniqueness validation
+        if name.lower() in self.chat_system.client_from_name:  # uniqueness validation
             raise KeyError
         self._nick = name
-        self.chat_system.client_from_name[name] = self
+        self.chat_system.client_from_name[name.lower()] = self
         return
 
     async def send(self, message: str):
