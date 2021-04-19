@@ -1,18 +1,17 @@
 import logging
 from typing import List, TYPE_CHECKING
-from asyncio import StreamReader, StreamWriter, Event
+from asyncio import Event
 
 if TYPE_CHECKING:
     from chatsystem import ChatSystem
 
 
 class ChatUser:
-    def __init__(
-        self, reader: StreamReader, writer: StreamWriter, chat_system: "ChatSystem"
-    ):
+    def __init__(self, reader, writer, chat_system: "ChatSystem"):
         self.reader = reader
         self.writer = writer
         self.chat_system = chat_system
+
         self.addr = writer.get_extra_info("peername")
         self.blocks: List[ChatUser] = []
         self._nick = None
@@ -22,7 +21,7 @@ class ChatUser:
 
     @property
     def nick(self):
-        return self._nick if (self._nick is not None) else self.addr
+        return self._nick or self.addr
 
     @nick.setter
     def nick(self, name):
